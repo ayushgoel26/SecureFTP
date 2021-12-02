@@ -1,22 +1,49 @@
 import socket
+import os
+import pickle
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.key_generation import KeyGeneration
 from src.fileTansfer import FileTransfer
 from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
-import os
-import pickle
+
+
+def get_connection(host, port):
+    # Socket object is created with the address family in argument
+    # Socket type.AF_INET -> Internet address family for IPv4
+    # SOCK_STREAM is the socket type for TCP
+    connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Used to associate the socket with a specific network interface. Arguments passed to bind
+    connection.bind((host, port))
+    return connection
+
+
+class Socket:
+    def __init__(self):
+        pass
+
+
+class Client:
+    def __init__(self):
+        pass
+
+    def start(self):
+        pass
+
+
+class Server:
+    def __init__(self):
+        pass
+
+    def start(self):
+        pass
+
 
 print("SFTP Server side")
-
-# Socket object is created with the address family in argument
-# Socket type.AF_INET -> Internet address family for IPv4
-# SOCK_STREAM is the socket type for TCP
-connect = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-connect.bind((HOST, PORT))  # Used to associate the socket with a specific network interface. Arguments passed to bind
+connect = get_connection(HOST, PORT)
+# Used to associate the socket with a specific network interface. Arguments passed to bind
 connect.listen(1)  # depend on the address family we choose
-
-print("Listening to %s on port %d" % (HOST, PORT))
+print("Listening at %s:%d" % (HOST, PORT))
 print("Waiting for connection")
 
 conn, address = connect.accept()

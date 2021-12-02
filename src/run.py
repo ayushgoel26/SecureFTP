@@ -1,4 +1,12 @@
 import getopt, sys
+import socket
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+from src.key_generation import KeyGeneration
+from src.fileTansfer import FileTransfer
+from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
+import os
+import random
 
 # Remove 1st argument from the
 # list of command line arguments
@@ -31,16 +39,7 @@ STARTING THE CLIENT
 -----------------------------------------
 >> python -m src.run [ -c | --client ] 
 -----------------------------------------""")
-
         elif currentArgument in ("-s", "--server"):
-            import socket
-            from Crypto.PublicKey import RSA
-            from Crypto.Cipher import PKCS1_OAEP
-            from src.key_generation import KeyGeneration
-            from src.fileTansfer import FileTransfer
-            from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
-            import os
-
             print("SFTP Server side")
 
             # Socket object is created with the address family in argument
@@ -84,15 +83,6 @@ STARTING THE CLIENT
                     break
 
         elif currentArgument in ("-c", "--client"):
-            import socket
-            import random
-            from src.key_generation import KeyGeneration
-            from Crypto.PublicKey import RSA
-            from Crypto.Cipher import PKCS1_OAEP
-            from src.fileTansfer import FileTransfer
-            from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
-            import os
-
             # Socket object is created with the address family in argument
             # Socket type.AF_INET -> Internet address family for IPv4
             # SOCK_STREAM is the socket type for TCP
