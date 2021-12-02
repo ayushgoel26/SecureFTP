@@ -1,13 +1,11 @@
 import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from key_generation import KeyGeneration
-from fileTansfer import FileTransfer
+from src.key_generation import KeyGeneration
+from src.fileTansfer import FileTransfer
+from config import HOST, PORT
 
 print("SFTP Server side")
-
-HOST = '127.0.0.1'  # localhost
-PORT = 1234  # Port to listen to
 
 # Socket object is created with the address family in argument
 # Socket type.AF_INET -> Internet address family for IPv4
@@ -24,7 +22,7 @@ print('Connection received from client ', address)
 
 authenticationPayloadEncrypted = conn.recv(4096)
 
-private_key = RSA.import_key(open('Certificates_and_keys/server-key.pem', 'r').read())  # pick servers private key
+private_key = RSA.import_key(open('../Certificates_and_keys/server-key.pem', 'r').read())  # pick servers private key
 cipher = PKCS1_OAEP.new(key=private_key)
 authenticationPayload = cipher.decrypt(authenticationPayloadEncrypted)
 
