@@ -1,10 +1,10 @@
 import socket
 import random
-from key_generation import KeyGeneration
+from src.key_generation import KeyGeneration
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from fileTansfer import FileTransfer
-from config import HOST, PORT
+from src.fileTansfer import FileTransfer
+from src.config import HOST, PORT
 
 # Socket object is created with the address family in argument
 # Socket type.AF_INET -> Internet address family for IPv4
@@ -48,5 +48,15 @@ while True:
         file_transfer.local_files()
     elif command[0] == "remoteFiles":
         conn.sendall(b"remoteFiles")
-
+        remote_file_list = conn.recv(4096).decode('utf-8')
+        if not remote_file_list:
+            print("The Directory is empty")
+        else:
+            # prints only files in the folder
+            for file in remote_file_list:
+                print("\t" + file)
+    elif command[0] == 'exit':
+        conn.sendall(b"exit")
+        print("Disconnecting")
+        break
 

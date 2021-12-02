@@ -3,7 +3,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.key_generation import KeyGeneration
 from src.fileTansfer import FileTransfer
-from config import HOST, PORT
+from src.config import HOST, PORT
 
 print("SFTP Server side")
 
@@ -36,4 +36,9 @@ while command != 'exit':
     file_transfer = FileTransfer('/server_files')
     client_command = conn.recv(4096).decode('utf-8').split(" ")
     if client_command[0] == "remoteFiles":
+        print("The client requested a list of remote directories")
         local_files = file_transfer.local_files()
+        conn.send(local_files.encode('utf-8'))
+    elif client_command[0] == "exit":
+        print("Client is leaving connection")
+        break
