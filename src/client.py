@@ -20,7 +20,8 @@ key_generation.session_key_generation()   # generating session key and other key
 # check if the server is authentic
 # https://www.peterspython.com/en/blog/using-python-s-pyopenssl-to-verify-ssl-certificates-downloaded-from-a-host
 # pick servers public key
-server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + '/' + CONFIDENTIAL_FILES_FOLDER + 'server-key-public.pem', 'r').read())
+server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + '/' + CONFIDENTIAL_FILES_FOLDER +
+                                        'server-key-public.pem', 'r').read())
 
 authenticationPayLoad = nonce + "," + str(key_generation.session_key)
 cipher = PKCS1_OAEP.new(server_public_key)
@@ -49,5 +50,14 @@ while True:
         file_transfer.local_files()
     elif command[0] == "remoteFiles":
         conn.sendall(b"remoteFiles")
-
-
+        remote_file_list = conn.recv(4096).decode('utf-8')
+        if not remote_file_list:
+            print("The Directory is empty")
+        else:
+            # prints only files in the folder
+            for file in remote_file_list:
+                print("\t" + file)
+    elif command[0] == 'exit':
+        conn.sendall(b"exit")
+        print("Disconnecting")
+        break
