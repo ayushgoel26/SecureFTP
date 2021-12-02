@@ -71,14 +71,31 @@ while command != 'exit':
     if client_command[0] == "lsr":
         print("The client requested a list of remote directories")
         local_files = file_transfer.local_files()
-        if not local_files:
-            conn.send(b'Directory is empty')
-        else:
-            data = pickle.dumps(local_files)
-            conn.send(data)
+        local_files = str(local_files).encode('utf-8')
+        conn.send(local_files)
     elif client_command[0] == "upload":
-        print('Server requesting to upload file. Sending Acknowledgement')
+        print('Client requesting to upload file. Sending Acknowledgement')
         conn.send(b"Ack")
+        integrity_value = file_transfer.download_file(conn, client_command[1], key_generation.integrity_verification_key,
+                                                      key_generation.file_encryption_key, key_generation.initialization_value)
+        print("File has been uploaded")
+        conn.send(b"Ack")
+        integrity_value_received = conn.recv(4096)
+        if integrity_value == integrity_value_received:
+            print("Integrity verification successful")
+            conn.send(b'The file passed integrity verification. The file was not corrupted')
+        else:
+            print("Integrity Verification failed")
+            conn.send(b'The file did not pass integrity verification. The file was corrupted')
+    elif client_command[0] == "download":
+        print('Client requested to download a file. Sending file')
+        integrity_value = file_transfer.upload_file(conn, client_command[1], key_generation.integrity_verification_key,
+                                                    key_generation.file_encryption_key, key_generation.initialization_value)
+        confirmation = conn.recv(4096).decode('utf-8')
+        if confirmation == "Ack":
+            conn.send(integrity_value)
+            confirmation = conn.recv(4096).decode('utf-8')
+            print(confirmation)
     elif client_command[0] == "exit":
         print("Client is leaving connection")
         break

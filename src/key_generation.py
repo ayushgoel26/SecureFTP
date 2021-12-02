@@ -16,5 +16,5 @@ class KeyGeneration:
         temporary_key = "0x" + session_key
         self.file_encryption_key = hex(int(temporary_key, 16) + 0x1).lstrip("0x").encode('utf-8')
         self.integrity_verification_key = hex(int(temporary_key, 16) + 0x2).lstrip("0x").encode('utf-8')
-        self.initialization_value = hex(int(temporary_key, 16) - 0x1).lstrip("0x")
+        self.initialization_value = hex(int(temporary_key, 16) - 0x1).lstrip("0x").encode('utf-8')
 

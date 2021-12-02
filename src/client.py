@@ -53,10 +53,12 @@ while True:
     elif command_split[0] == "lsr":
         conn.sendall(command.encode('utf-8'))
         remote_file_list = conn.recv(4096).decode('utf-8')
-        if type(remote_file_list) != list:
-            print("The Directory is empty")
+        remote_file_list = eval(remote_file_list)
+        if not remote_file_list:
+            print('Remote directory has no files')
         else:
-            for file in pickle.loads(remote_file_list.encode('utf-8')):
+            print('The files in the remote directory are')
+            for file in remote_file_list:
                 print("\t" + file)
     elif command_split[0] == 'upload':
         conn.sendall(command.encode('utf-8'))
@@ -64,8 +66,26 @@ while True:
         if confirmation == 'Ack':
             print("\t Acknowledgement received")
             print("\t Preparing file to send")
-            file_transfer.upload_file(conn, command_split[1], key_generation.integrity_verification_key,
-                                      key_generation.file_encryption_key, key_generation.initialization_value)
+            integrity_value = file_transfer.upload_file(conn, command_split[1], key_generation.integrity_verification_key,
+                                                        key_generation.file_encryption_key, key_generation.initialization_value)
+            confirmation = conn.recv(4096).decode('utf-8')
+            if confirmation == 'Ack':
+                conn.send(integrity_value)
+                confirmation = conn.recv(4096).decode('utf-8')
+                print(confirmation)
+    elif command_split[0] == 'download':
+        conn.sendall(command.encode('utf-8'))
+        integrity_value = file_transfer.download_file(conn, command_split[1], key_generation.integrity_verification_key,
+                                                      key_generation.file_encryption_key, key_generation.initialization_value)
+        print('File has been downloaded')
+        conn.send(b'Ack')
+        integrity_value_received = conn.recv(4096)
+        if integrity_value == integrity_value_received:
+            print("Integrity verification successful")
+            conn.send(b'The file passed integrity verification. The file was not corrupted')
+        else:
+            print("Integrity Verification failed")
+            conn.send(b'The file did not pass integrity verification. The file was corrupted')
     elif command_split[0] == 'exit':
         conn.sendall(b"exit")
         print("Disconnecting")
