@@ -44,3 +44,5 @@ while command != 'exit':
     elif client_command[0] == "exit":
         print("Client is leaving connection")
         break
+
+
