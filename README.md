@@ -22,10 +22,10 @@
     
     >> help 
 
-### List all files available in client side local directory
+#### List all files available in client side local directory
     
     >> lsl 
 
-### List all files available in server side local directory
+##### List all files available in server side local directory
     
     >> lsr 
