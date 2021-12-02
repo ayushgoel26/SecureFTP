@@ -6,6 +6,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from src.fileTansfer import FileTransfer
 from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
 import os
+import pickle
 
 # Socket object is created with the address family in argument
 # Socket type.AF_INET -> Internet address family for IPv4
@@ -38,26 +39,36 @@ else:
 print("Type 'help' to get list of available command")
 while True:
     file_transfer = FileTransfer("/client_files")
-    command = input('command: ').split(" ")
-    if command[0] == "help":
-        print("help: provide the list of commands")
-        print("localFiles: provides the list of files in the client directory")
-        print("remoteFiles: proves the list of files in the server directory")
-        print("upload <Filename> : Uploads the file")
-        print("download <Filename> : Download the file")
-        print("exit : exits the client server")
-    elif command[0] == "localFiles":
+    command = input('command: ')
+    command_split = command.split(" ")
+    if command_split[0] == "help":
+        print("\t help: provide the list of commands")
+        print("\t lsl: provides the list of files in the client directory")
+        print("\t lsr: proves the list of files in the server directory")
+        print("\t upload <Filename> : Uploads the file")
+        print("\t download <Filename> : Download the file")
+        print("\t exit : exits the client server")
+    elif command_split[0] == "lsl":
         file_transfer.local_files()
-    elif command[0] == "remoteFiles":
-        conn.sendall(b"remoteFiles")
+    elif command_split[0] == "lsr":
+        conn.sendall(command.encode('utf-8'))
         remote_file_list = conn.recv(4096).decode('utf-8')
-        if not remote_file_list:
+        if type(remote_file_list) != list:
             print("The Directory is empty")
         else:
-            # prints only files in the folder
-            for file in remote_file_list:
+            for file in pickle.loads(remote_file_list.encode('utf-8')):
                 print("\t" + file)
-    elif command[0] == 'exit':
+    elif command_split[0] == 'upload':
+        conn.sendall(command.encode('utf-8'))
+        confirmation = conn.recv(4096).decode('utf-8')
+        if confirmation == 'Ack':
+            print("\t Acknowledgement received")
+            print("\t Preparing file to send")
+            file_transfer.upload_file(conn, command_split[1], key_generation.integrity_verification_key,
+                                      key_generation.file_encryption_key, key_generation.initialization_value)
+    elif command_split[0] == 'exit':
         conn.sendall(b"exit")
         print("Disconnecting")
         break
+    else:
+        print("Wrong command. Please enter again")
