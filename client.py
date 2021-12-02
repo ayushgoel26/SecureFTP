@@ -3,6 +3,7 @@ import random
 from key_generation import KeyGeneration
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+from fileTansfer import FileTransfer
 
 HOST = '127.0.0.1'  # localhost
 PORT = 1234    # port used by server
@@ -33,3 +34,21 @@ if nonce == nonce_received:
 else:
     print("Server failed authentication")
     exit(1)
+
+print("Type 'help' to get list of available command")
+while True:
+    file_transfer = FileTransfer("/client_files")
+    command = input('command: ').split(" ")
+    if command[0] == "help":
+        print("help: provide the list of commands")
+        print("localFiles: provides the list of files in the client directory")
+        print("remoteFiles: proves the list of files in the server directory")
+        print("upload <Filename> : Uploads the file")
+        print("download <Filename> : Download the file")
+        print("exit : exits the client server")
+    elif command[0] == "localFiles":
+        file_transfer.local_files()
+    elif command[0] == "remoteFiles":
+        conn.sendall(b"remoteFiles")
+
+

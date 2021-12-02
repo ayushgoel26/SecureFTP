@@ -2,6 +2,7 @@ import socket
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from key_generation import KeyGeneration
+from fileTansfer import FileTransfer
 
 print("SFTP Server side")
 
@@ -31,3 +32,10 @@ nonce, session_key = authenticationPayload.decode('utf-8').split(',')
 conn.send(nonce.encode('utf-8'))
 key_generation = KeyGeneration()
 key_generation.generate_keys(session_key)
+
+command = None
+while command != 'exit':
+    file_transfer = FileTransfer('/server_files')
+    client_command = conn.recv(4096).decode('utf-8').split(" ")
+    if client_command[0] == "remoteFiles":
+        local_files = file_transfer.local_files()
