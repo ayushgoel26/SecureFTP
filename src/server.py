@@ -3,7 +3,8 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.key_generation import KeyGeneration
 from src.fileTansfer import FileTransfer
-from config import HOST, PORT
+from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
+import os
 
 print("SFTP Server side")
 
@@ -22,7 +23,8 @@ print('Connection received from client ', address)
 
 authenticationPayloadEncrypted = conn.recv(4096)
 
-private_key = RSA.import_key(open('../Certificates_and_keys/server-key.pem', 'r').read())  # pick servers private key
+private_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + '/' + CONFIDENTIAL_FILES_FOLDER + 'server-key.pem', 'r').read())
+# pick servers private key
 cipher = PKCS1_OAEP.new(key=private_key)
 authenticationPayload = cipher.decrypt(authenticationPayloadEncrypted)
 
