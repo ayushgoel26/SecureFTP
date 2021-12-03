@@ -1,11 +1,13 @@
 import socket
 import os
+import pyfiglet
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
+from termcolor import colored
 from src.key_generation import KeyGenerator
 from src.handler import FileHandler
 from src.config import HOST, PORT, SECRET_FOLDER, SERVER_FOLDER, SERVER_PVT_KEY, ROOT_FOLDER, ACK, \
-    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK
+    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, INCORRECT_FILE
 
 
 class Server:
@@ -13,7 +15,6 @@ class Server:
     Server Class
     """
     def __init__(self, host, port):
-        print("SFTP Server side")
         # Socket object is created with the address family in argument
         # Socket type.AF_INET -> Internet address family for IPv4
         # SOCK_STREAM is the socket type for TCP
@@ -23,6 +24,8 @@ class Server:
         # Used to associate the socket with a specific network interface. Arguments passed to bind
         self.connection.bind((host, port))
         self.connection.listen(1)  # depend on the address family we choose
+        ascii_banner = pyfiglet.figlet_format("S E R V E R")
+        print(colored(ascii_banner, 'green'))
         print("Listening at %s:%d" % (HOST, PORT))
         print("Waiting for connection")
 
@@ -47,8 +50,9 @@ class Server:
         list the files in the server directory and send it to the client
         :param conn: connection object after the server connects to the client
         """
-        print("The client requested a list of remote directories")
-        local_files = self.file_transfer.local_files()  # function to find file names ,print them and pass a list for client
+        print(colored("The client requested a list of remote directories", 'yellow'))
+        # function to find file names ,print them and pass a list for client
+        local_files = self.file_transfer.local_files()
         local_files = str(local_files).encode('utf-8')  # make the list into string and encode it
         conn.send(local_files)  # send the list of files to the client
 
@@ -58,7 +62,7 @@ class Server:
         :param conn: connection object after the server connects to the client
         :param filename: name of the file being uploaded
         """
-        print('Client requesting to upload file. Sending Acknowledgement')
+        print(colored('Client requesting to upload file. Sending Acknowledgement', 'yellow'))
         conn.send(ACK)  # send an acknowledgment for sending the file
         # call method to receive the file and get the integrity value
 
@@ -67,15 +71,16 @@ class Server:
                                                            self.key_generation.file_encryption_key,
                                                            self.key_generation.initialization_value)
         if integrity_value:
-            print("File has been uploaded")
+            print(colored("File has been uploaded", 'green'))
             conn.send(ACK)   # send an acknowledge for receiving the file
-            integrity_value_received = conn.recv(4096)  # receive the integrity value from the client after he receives file
+            # receive the integrity value from the client after he receives file
+            integrity_value_received = conn.recv(4096)
             # check if integrity values are same and send an acknowledgement
             if integrity_value == integrity_value_received:
-                print("Integrity verification successful")
+                print(colored("Integrity verification successful", 'green'))
                 conn.send(SUCCESS_INTEGRITY_CHECK)
             else:
-                print("Integrity Verification failed")
+                print(colored("Integrity Verification failed", 'red'))
                 conn.send(FAILED_INTEGRITY_CHECK)
 
     def get(self, conn, filename):
@@ -84,7 +89,7 @@ class Server:
         :param conn: connection object after the server connects to the client
         :param filename: name of the file being uploaded
         """
-        print('Client requested to download a file. Sending file')
+        print(colored('Client requested to download a file. Sending file', 'yellow'))
         # function to upload the file and get the integrity value
         integrity_value = self.file_transfer.upload_file(conn, filename,
                                                          self.key_generation.integrity_verification_key,
@@ -94,7 +99,8 @@ class Server:
             confirmation = conn.recv(4096).decode('utf-8')  # receive the confirmation from the client
             if confirmation == ACK.decode("utf-8"):
                 conn.send(integrity_value)  # send client the integrity value
-                confirmation = conn.recv(4096).decode('utf-8')  # receive acknowledgement about the integrity of the file
+                # receive acknowledgement about the integrity of the file
+                confirmation = conn.recv(4096).decode('utf-8')
                 print(confirmation)
         else:
-            conn.send(b'File does not exist')
+            conn.send(INCORRECT_FILE)

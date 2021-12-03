@@ -11,6 +11,7 @@ argumentList = sys.argv[1:]
 options = "hsc"
 long_options = ["help", "client", "server"]
 
+# COMMAND LINE INTERFACE FOR THE APPLICATION
 try:
     arguments, values = getopt.getopt(argumentList, options, long_options)
     for currentArgument, currentValue in arguments:
@@ -18,8 +19,6 @@ try:
             print(HELP_TEXT)
         elif currentArgument in ("-s", "--server"):
             server = Server(HOST, PORT)
-            ascii_banner = pyfiglet.figlet_format("S E R V E R")
-            print(colored(ascii_banner, 'green'))
             conn, address = server.connection.accept()
             print('Connection received from client ', address)
             server.authenticate(conn)

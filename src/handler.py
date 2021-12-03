@@ -1,6 +1,7 @@
 import os
 import hashlib
-from src.config import EOF
+from termcolor import colored
+from src.config import EOF, INCORRECT_FILE
 
 
 def hash_xor(data, key, previous_data):
@@ -19,7 +20,7 @@ class FileHandler:
         l_files = os.listdir(self.path)  # gets content of folder
         print("File Directory: " + self.path)
         if not l_files:
-            print("The Directory is empty")
+            print(colored("The Directory is empty", 'red'))
             return
         # prints only files in the folder
         for file in l_files:
@@ -33,7 +34,7 @@ class FileHandler:
         integrity_hash = hashlib.sha256()
         integrity_hash.update(integrity_key)
         if os.path.isfile(file_path):
-            print("File found successfully")
+            print(colored("File found successfully", 'green'))
             with open(file_path, 'rb') as file:
                 chunk = '-'
                 previous_chunk = initialization_value
@@ -47,7 +48,7 @@ class FileHandler:
                     conn.send(encrypted_chunk)
             return integrity_hash.digest()
         else:
-            print("File Does not exist")
+            print(colored("File Does not exist", 'red'))
             return None
 
     def download_file(self, conn, file_name, integrity_key, encryption_key, initialization_value):
@@ -55,11 +56,11 @@ class FileHandler:
         integrity_hash = hashlib.sha256()
         integrity_hash.update(integrity_key)
         encrypted_file_chunk = conn.recv(self.chunk_size)
-        if encrypted_file_chunk == b'File does not exist':
-            print("File does not exist")
+        if encrypted_file_chunk == INCORRECT_FILE:
+            print(colored("File does not exist", 'red'))
             return None
         with open(file_path, 'wb') as file:
-            chunk = '-'
+            # chunk = '-'
             previous_chunk = initialization_value
             while True:
                 chunk = hash_xor(encrypted_file_chunk, encryption_key, previous_chunk)

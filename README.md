@@ -37,11 +37,11 @@
 
 ##### Uploads a file from Client to Server 
     
-    >> put <<file-name in client's root> > 
+    >> put <file-name in client's root>
 
 ##### Downloads a file from Server to Client
     
-    >> get <<file-name in remote's root> >
+    >> get <file-name in remote's root>
 
 ##### Exit the SecureFTP module
     

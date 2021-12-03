@@ -13,6 +13,7 @@ SERVER_PVT_KEY = '/server-key.pem'
 SERVER_PUBLIC_KEY = '/server-key-public.pem'
 
 # Messages
+INCORRECT_FILE = b'File does not exist'
 SUCCESS_INTEGRITY_CHECK = b'The file passed integrity verification. The file was not corrupted'
 FAILED_INTEGRITY_CHECK = b'The file did not pass integrity verification. The file was corrupted'
 ACK = b"ACK"

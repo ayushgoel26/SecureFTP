@@ -7,7 +7,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.handler import FileHandler
 from src.config import SECRET_FOLDER, CLIENT_FOLDER, ROOT_FOLDER, SERVER_PUBLIC_KEY, \
-    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, ACK
+    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, ACK, INCORRECT_FILE
 
 
 class Client:
@@ -101,7 +101,7 @@ class Client:
                     confirmation = self.connection.recv(4096).decode('utf-8')
                     print(confirmation)
             else:
-                self.connection.send(b'File does not exist')
+                self.connection.send(INCORRECT_FILE)
 
     def get(self, command):
         """
