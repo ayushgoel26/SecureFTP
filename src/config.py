@@ -1,38 +1,28 @@
 HOST = '127.0.0.1'  # localhost
 PORT = 1234    # port used by server
 
-CONFIDENTIAL_FILES_FOLDER = 'confidential/'
+# Directory Names
+SERVER_FOLDER = '/server'
+CLIENT_FOLDER = '/client'
+ROOT_FOLDER = '/root'
+SECRET_FOLDER = '/secret'
+CA_FOLDER = '/ca'
+
+# Secret File Names
+SERVER_PVT_KEY = ''
+SERVER_PUBLIC_KEY = '/server-key-public.pem'
+
 
 WELCOME_TEXT = """---------------------------------------------------
 TYPE  >> help  TO GET THE LIST OF ALLOWED COMMANDS 
 ---------------------------------------------------"""
 
-SecureFTP_HELP_TEXT = """-----------------------------------------
-Local Root Directory Content List
------------------------------------------    
-Lists the contents of the client's root folder
->> lsl
------------------------------------------
-Remote Root Directory Content List
------------------------------------------
-Lists the contents of the remote server's root folder
->> lsr
------------------------------------------
-Put a file in remote server 
------------------------------------------
-Uploads a file from Client to Server 
->> put <file-name in client root>
------------------------------------------
-Get a file from remote server 
------------------------------------------
-Downloads a file from Server to Client
->> get <file-name in remote's root>
------------------------------------------
-Exit the SecureFTP module 
------------------------------------------
-cancels the connection and exits 
->> exit
------------------------------------------"""
+SecureFTP_HELP_TEXT = """
+    >> lsl                               : Lists the contents of the client's root folder
+    >> lsr                               : Lists the contents of the remote server's root folder
+    >> put <file-name in client root>    : Uploads a file from Client to Server 
+    >> get <file-name in remote's root>  : Downloads a file from Server to Client
+    >> exit                              : Exit the SecureFTP module"""
 
 HELP_TEXT = """-----------------------------------------
 DISPLAYING THE HELP MENU

@@ -3,8 +3,8 @@ import os
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.key_generation import KeyGeneration
-from src.fileTansfer import FileTransfer
-from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
+from src.file_transfer import FileTransfer
+from src.config import HOST, PORT, SECRET_FOLDER
 
 
 class Server:

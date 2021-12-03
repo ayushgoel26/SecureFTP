@@ -3,8 +3,8 @@ import random
 from src.key_generation import KeyGeneration
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from src.fileTansfer import FileTransfer
-from src.config import HOST, PORT, CONFIDENTIAL_FILES_FOLDER
+from src.file_transfer import FileTransfer
+from src.config import HOST, PORT, SECRET_FOLDER, CLIENT_FOLDER, ROOT_FOLDER, SERVER_PUBLIC_KEY
 import os
 
 
@@ -19,20 +19,18 @@ class Client:
         self.file_transfer = FileTransfer("/root")
         self.key_generator = KeyGeneration()
         self.key_generator.session_key_generation()  # generating session key and other keys
-        print("Listening at %s:%d" % (HOST, PORT))
-        print("Waiting for connection")
 
     def authenticate(self):
         # check if the server is authentic
         # https://www.peterspython.com/en/blog/using-python-s-pyopenssl-to-verify-ssl-certificates-downloaded-from-a-host
         # pick servers public key
-        server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + '/' +
-                                                CONFIDENTIAL_FILES_FOLDER + 'server-key-public.pem', 'r').read())
+        server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + CLIENT_FOLDER +
+                                                SECRET_FOLDER + SERVER_PUBLIC_KEY, 'r').read())
         nonce = str(random.randint(100000, 1000000))   # pick random nonce to authenticate server
-        authenticationPayLoad = nonce + "," + str(self.key_generator.session_key)
+        authentication_payload = nonce + "," + str(self.key_generator.session_key)
         cipher = PKCS1_OAEP.new(server_public_key)
-        authenticationPayLoadEncrypted = cipher.encrypt(str(authenticationPayLoad).encode('utf-8'))
-        self.connection.send(authenticationPayLoadEncrypted)
+        authentication_payload_encrypted = cipher.encrypt(str(authentication_payload).encode('utf-8'))
+        self.connection.send(authentication_payload_encrypted)
         nonce_received = self.connection.recv(4096).decode('utf-8')
         if nonce == nonce_received:
             print("Server authenticated successfully")
@@ -79,6 +77,7 @@ class Client:
                                                            self.key_generator.initialization_value)
         print('File has been downloaded')
         self.connection.send(b'Ack')
+        print('Doing Integrity Check')
         integrity_value_received = self.connection.recv(4096)
         if integrity_value == integrity_value_received:
             print("Integrity verification successful")

@@ -15,6 +15,8 @@ try:
         if currentArgument in ("-h", "--help"):
             print(HELP_TEXT)
         elif currentArgument in ("-s", "--server"):
+            ascii_banner = pyfiglet.figlet_format("S E R V E R")
+            print(ascii_banner)
             server = Server(HOST, PORT)
             conn, address = server.connection.accept()
             print('Connection received from client ', address)
