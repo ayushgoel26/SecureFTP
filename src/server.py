@@ -8,13 +8,16 @@ from src.config import HOST, PORT, SECRET_FOLDER, SERVER_FOLDER, SERVER_PVT_KEY,
 
 
 class Server:
+    """
+    Server Class
+    """
     def __init__(self, host, port):
         print("SFTP Server side")
         # Socket object is created with the address family in argument
         # Socket type.AF_INET -> Internet address family for IPv4
         # SOCK_STREAM is the socket type for TCP
-        self.key_generation = KeyGeneration()
-        self.file_transfer = FileTransfer(SERVER_FOLDER + ROOT_FOLDER)
+        self.key_generation = KeyGeneration()  # make an object for key generation
+        self.file_transfer = FileTransfer(SERVER_FOLDER + ROOT_FOLDER)  # make a object for file transfer
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Used to associate the socket with a specific network interface. Arguments passed to bind
         self.connection.bind((host, port))
@@ -23,32 +26,48 @@ class Server:
         print("Waiting for connection")
 
     def authenticate(self, conn):
-        authentication_payload_encrypted = conn.recv(4096)
+        """
+        pass authentication
+        :param conn: connection object after the server connects to the client
+        """
+        authentication_payload_encrypted = conn.recv(4096) # receive the authentication payload from client
+        # pick its private key
         private_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + SERVER_FOLDER + SECRET_FOLDER +
                                           SERVER_PVT_KEY, 'r').read())
-        # pick servers private key
-        cipher = PKCS1_OAEP.new(key=private_key)
-        authentication_payload = cipher.decrypt(authentication_payload_encrypted)
+        cipher = PKCS1_OAEP.new(key=private_key)  # loading its public key to use for encryption
+        authentication_payload = cipher.decrypt(authentication_payload_encrypted)  # decrypt the authentication payload
+        # get the session key and the nonce from the payload
         nonce, session_key = authentication_payload.decode('utf-8').split(',')
-        conn.send(nonce.encode('utf-8'))
-        self.key_generation.generate_keys(session_key)
+        conn.send(nonce.encode('utf-8'))  # send the nonce to the client
+        self.key_generation.generate_keys(session_key)  # generate the other keys from the session key
 
     def list_contents(self, conn):
+        """
+        list the files in the server directory and send it to the client
+        :param conn: connection object after the server connects to the client
+        """
         print("The client requested a list of remote directories")
-        local_files = self.file_transfer.local_files()
-        local_files = str(local_files).encode('utf-8')
-        conn.send(local_files)
+        local_files = self.file_transfer.local_files()  # function to find file names ,print them and pass a list for client
+        local_files = str(local_files).encode('utf-8')  # make the list into string and encode it
+        conn.send(local_files)  # send the list of files to the client
 
     def put(self, conn, filename):
+        """
+        receive file from the client that it wants to upload
+        :param conn: connection object after the server connects to the client
+        :param filename: name of the file being uploaded
+        """
         print('Client requesting to upload file. Sending Acknowledgement')
-        conn.send(b"Ack")
+        conn.send(b"Ack")  # send an acknowledgment for sending the file
+        # call method to receive the file and get the integrity value
         integrity_value = self.file_transfer.download_file(conn, filename,
                                                            self.key_generation.integrity_verification_key,
                                                            self.key_generation.file_encryption_key,
                                                            self.key_generation.initialization_value)
         print("File has been uploaded")
-        conn.send(b"Ack")
-        integrity_value_received = conn.recv(4096)
+        conn.send(b"Ack")   # send an acknowledge for receiving the file
+        integrity_value_received = conn.recv(4096)  # receive the integrity value from the client after he receives file
+        # check if integrity values are same and send an acknowledgement
         if integrity_value == integrity_value_received:
             print("Integrity verification successful")
             conn.send(b'The file passed integrity verification. The file was not corrupted')
@@ -57,13 +76,19 @@ class Server:
             conn.send(b'The file did not pass integrity verification. The file was corrupted')
 
     def get(self, conn, filename):
+        """
+        upload the file the server requested for
+        :param conn: connection object after the server connects to the client
+        :param filename: name of the file being uploaded
+        """
         print('Client requested to download a file. Sending file')
+        # function to upload the file and get the integrity value
         integrity_value = self.file_transfer.upload_file(conn, filename,
                                                          self.key_generation.integrity_verification_key,
                                                          self.key_generation.file_encryption_key,
                                                          self.key_generation.initialization_value)
-        confirmation = conn.recv(4096).decode('utf-8')
+        confirmation = conn.recv(4096).decode('utf-8')  # receive the confirmation from the client
         if confirmation == "Ack":
-            conn.send(integrity_value)
-            confirmation = conn.recv(4096).decode('utf-8')
+            conn.send(integrity_value)  # send client the integrity value
+            confirmation = conn.recv(4096).decode('utf-8')  # receive acknowledgement about the integrity of the file
             print(confirmation)
