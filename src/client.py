@@ -1,6 +1,7 @@
 import socket
 import random
 import os
+from termcolor import colored
 from src.key_generation import KeyGenerator
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
@@ -44,12 +45,12 @@ class Client:
         nonce_received = self.connection.recv(4096).decode('utf-8')
         # check if the nonce received is same as the nonce we sent
         if nonce == nonce_received:
-            print("Server authenticated successfully")
+            print(colored("Server authenticated successfully", 'green'))
             # generate other keys as the server is authenticated
             self.key_generator.generate_keys(self.key_generator.session_key)
         else:
             # exit as the server failed authentication
-            print("Server failed authentication")
+            print(colored("Server failed authentication", 'red'))
             exit(1)
 
     def list_content(self):
@@ -68,7 +69,7 @@ class Client:
         remote_file_list = eval(remote_file_list)
         # if list is empty print so else print the file names
         if not remote_file_list:
-            print('Remote root directory is empty')
+            print(colored('Remote root directory is empty', 'red'))
         else:
             print('The files in the remote directory are')
             for file in remote_file_list:
@@ -83,7 +84,7 @@ class Client:
         confirmation = self.connection.recv(4096).decode('utf-8')   # server sends an acknowledgment for uploading
         # if confirmation is an acknowledgement then send the file to server
         if confirmation == ACK.decode("utf-8"):
-            print("Acknowledgement received")
+            print(colored("Acknowledgement received", 'green'))
             print("Preparing file to send")
             # function to send file to the server and get bath the integrity value
             integrity_value = self.file_transfer.upload_file(self.connection, "/" + command.split(" ")[1],
@@ -110,13 +111,13 @@ class Client:
                                                            self.key_generator.integrity_verification_key,
                                                            self.key_generator.file_encryption_key,
                                                            self.key_generator.initialization_value)
-        print('File has been downloaded')
+        print(colored('File has been downloaded', 'green'))
         self.connection.send(ACK)  # send an acknowledgement after receiving the file
         print('Doing Integrity Check')
         integrity_value_received = self.connection.recv(4096)  # receive the integrity value calculated by the server
         if integrity_value == integrity_value_received:  # compare the integrity values and send acknowledgement message
-            print("Integrity verification successful")
+            print(colored("Integrity verification successful", 'green'))
             self.connection.send(SUCCESS_INTEGRITY_CHECK)
         else:
-            print("Integrity Verification failed")
+            print(colored("Integrity Verification failed", 'red'))
             self.connection.send(FAILED_INTEGRITY_CHECK)

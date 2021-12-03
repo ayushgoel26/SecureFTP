@@ -2,6 +2,7 @@ import getopt
 import os
 import sys
 import pyfiglet
+from termcolor import colored
 from src.server import Server
 from src.client import Client
 from src.config import HOST, PORT, WELCOME_TEXT, HELP_TEXT, SecureFTP_HELP_TEXT
@@ -18,7 +19,7 @@ try:
         elif currentArgument in ("-s", "--server"):
             server = Server(HOST, PORT)
             ascii_banner = pyfiglet.figlet_format("S E R V E R")
-            print(ascii_banner)
+            print(colored(ascii_banner, 'green'))
             conn, address = server.connection.accept()
             print('Connection received from client ', address)
             server.authenticate(conn)
@@ -38,11 +39,11 @@ try:
         elif currentArgument in ("-c", "--client"):
             client = Client(HOST, PORT)
             ascii_banner = pyfiglet.figlet_format("C L I E N T")
-            print(ascii_banner)
+            print(colored(ascii_banner, 'blue'))
             print(WELCOME_TEXT)
             client.authenticate()
             while True:
-                command = input(os.getcwd() + ' >> ')
+                command = input(colored(os.getcwd() + ' >> ', 'blue'))
                 command_split = command.split(" ")
                 if command_split[0] == "help":
                     print(SecureFTP_HELP_TEXT)
