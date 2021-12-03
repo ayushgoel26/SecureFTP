@@ -4,28 +4,47 @@
     1. Ayush Goel (AXG190164)
     2. Reva Gupta (RXG190061)
 
-## Installation 
-
 ## Setup
 
-## Running the server 
+    $ cd SecureFTP
+    $ pip3 install -r requirements.txt
+
+## Running SecureFTP 
+
+**NOTE: Need two different terminal windows for client and server**
+
+#### Running the server 
     
-    $ python3 -m src.server 
+    $ python3 -m src.run [ -s | --server ]  
 
-## Running the client 
+#### Running the client 
 
-    $ python3 -m src.client 
+    $ python3 -m src.run [ -c | --client ]  
 
-## Using SecureFTP 
+## Using SecureFTP Client
     
-### List all available commands 
+##### List all available commands 
     
     >> help 
 
-#### List all files available in client side local directory
+##### List all files available in client side root directory
     
     >> lsl 
 
-##### List all files available in server side local directory
+##### List all files available in server side root directory
     
     >> lsr 
+
+##### Uploads a file from Client to Server 
+    
+    >> put <<file-name in client's root> > 
+
+##### Downloads a file from Server to Client
+    
+    >> get <<file-name in remote's root> >
+
+##### Exit the SecureFTP module
+    
+    >> exit 
+
+
