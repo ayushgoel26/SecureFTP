@@ -45,18 +45,23 @@ class FileHandler:
                     encrypted_chunk = hash_xor(chunk, encryption_key, previous_chunk)
                     previous_chunk = encrypted_chunk
                     conn.send(encrypted_chunk)
-        return integrity_hash.digest()
+            return integrity_hash.digest()
+        else:
+            print("File Does not exist")
+            return None
 
     def download_file(self, conn, file_name, integrity_key, encryption_key, initialization_value):
         file_path = self.path + file_name
         integrity_hash = hashlib.sha256()
         integrity_hash.update(integrity_key)
-        # add code to check if file already exists -> ask client if wants to rewrite or give file new name
+        encrypted_file_chunk = conn.recv(self.chunk_size)
+        if encrypted_file_chunk == b'File does not exist':
+            print("File does not exist")
+            return None
         with open(file_path, 'wb') as file:
             chunk = '-'
             previous_chunk = initialization_value
-            while chunk:
-                encrypted_file_chunk = conn.recv(self.chunk_size)
+            while True:
                 chunk = hash_xor(encrypted_file_chunk, encryption_key, previous_chunk)
                 previous_chunk = encrypted_file_chunk
                 if chunk[-3:] == EOF:
@@ -66,4 +71,7 @@ class FileHandler:
                     break
                 integrity_hash.update(chunk)
                 file.write(chunk)
+                encrypted_file_chunk = conn.recv(self.chunk_size)
+                if not chunk:
+                    break
         return integrity_hash.digest()
