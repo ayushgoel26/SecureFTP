@@ -1,11 +1,12 @@
 import socket
 import random
-from src.key_generation import KeyGeneration
+import os
+from src.key_generation import KeyGenerator
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
-from src.file_transfer import FileTransfer
-from src.config import HOST, PORT, SECRET_FOLDER, CLIENT_FOLDER, ROOT_FOLDER, SERVER_PUBLIC_KEY
-import os
+from src.handler import FileHandler
+from src.config import SECRET_FOLDER, CLIENT_FOLDER, ROOT_FOLDER, SERVER_PUBLIC_KEY, \
+    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, ACK
 
 
 class Client:
@@ -19,8 +20,8 @@ class Client:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.connect((host, port))  # connect to server
         # Used to associate the socket with a specific network interface. Arguments passed to bind
-        self.file_transfer = FileTransfer(CLIENT_FOLDER + ROOT_FOLDER)
-        self.key_generator = KeyGeneration()  # object for a class to generate keys
+        self.file_transfer = FileHandler(CLIENT_FOLDER + ROOT_FOLDER)
+        self.key_generator = KeyGenerator()  # object for a class to generate keys
         self.key_generator.session_key_generation()  # generating session key and other keys
 
     def authenticate(self):
@@ -33,7 +34,7 @@ class Client:
         server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + CLIENT_FOLDER +
                                                 SECRET_FOLDER + SERVER_PUBLIC_KEY, 'r').read())
         nonce = str(random.randint(100000, 1000000))   # pick random nonce to authenticate server
-        authentication_payload = nonce + "," + str(self.key_generator.session_key) # making authentication payload
+        authentication_payload = nonce + "," + str(self.key_generator.session_key)  # making authentication payload
         cipher = PKCS1_OAEP.new(server_public_key)  # loading the servers public key to use for encryption
         # encrypting the authentication payload using the server public key
         authentication_payload_encrypted = cipher.encrypt(str(authentication_payload).encode('utf-8'))
@@ -67,57 +68,55 @@ class Client:
         remote_file_list = eval(remote_file_list)
         # if list is empty print so else print the file names
         if not remote_file_list:
-            print('Remote directory has no files')
+            print('Remote root directory is empty')
         else:
             print('The files in the remote directory are')
             for file in remote_file_list:
-                print("\t" + file)
+                print("\t -- " + file)
 
-    def put(self, command, filename):
+    def put(self, command):
         """
         command to upload the file to the server
         :param command: command passed by the client
-        :param filename: the name of the file to be uploaded
         """
         self.connection.sendall(command.encode('utf-8'))  # sending command to the server
         confirmation = self.connection.recv(4096).decode('utf-8')   # server sends an acknowledgment for uploading
         # if confirmation is an acknowledgement then send the file to server
-        if confirmation == 'Ack':
-            print("\t Acknowledgement received")
-            print("\t Preparing file to send")
+        if confirmation == ACK.decode("utf-8"):
+            print("Acknowledgement received")
+            print("Preparing file to send")
             # function to send file to the server and get bath the integrity value
-            integrity_value = self.file_transfer.upload_file(self.connection, filename,
+            integrity_value = self.file_transfer.upload_file(self.connection, "/" + command.split(" ")[1],
                                                              self.key_generator.integrity_verification_key,
                                                              self.key_generator.file_encryption_key,
                                                              self.key_generator.initialization_value)
             # receive a confirmation from the server on receiving the file
             confirmation = self.connection.recv(4096).decode('utf-8')
-            if confirmation == 'Ack':
-                # send the integrity value to the server to check if the file was corrupted or not
+            # send the integrity value to the server to check if the file was corrupted or not
+            if confirmation == ACK.decode("utf-8"):
                 self.connection.send(integrity_value)
                 # receive conformation about the file
                 confirmation = self.connection.recv(4096).decode('utf-8')
                 print(confirmation)
 
-    def get(self, command, filename):
+    def get(self, command):
         """
         command to download the file from server
         :param command: command passed by  the client
-        :param filename: name of the file to be downloaded
         """
         self.connection.sendall(command.encode('utf-8'))  # send the command to the server
         # download the file sent by the server to the client
-        integrity_value = self.file_transfer.download_file(self.connection, filename,
+        integrity_value = self.file_transfer.download_file(self.connection, "/" + command.split(" ")[1],
                                                            self.key_generator.integrity_verification_key,
                                                            self.key_generator.file_encryption_key,
                                                            self.key_generator.initialization_value)
         print('File has been downloaded')
-        self.connection.send(b'Ack')  # send an acknowledgement after receiving the file
+        self.connection.send(ACK)  # send an acknowledgement after receiving the file
         print('Doing Integrity Check')
         integrity_value_received = self.connection.recv(4096)  # receive the integrity value calculated by the server
         if integrity_value == integrity_value_received:  # compare the integrity values and send acknowledgement message
             print("Integrity verification successful")
-            self.connection.send(b'The file passed integrity verification. The file was not corrupted')
+            self.connection.send(SUCCESS_INTEGRITY_CHECK)
         else:
             print("Integrity Verification failed")
-            self.connection.send(b'The file did not pass integrity verification. The file was corrupted')
+            self.connection.send(FAILED_INTEGRITY_CHECK)
