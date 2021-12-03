@@ -9,7 +9,7 @@ SECRET_FOLDER = '/secret'
 CA_FOLDER = '/ca'
 
 # Secret File Names
-SERVER_PVT_KEY = ''
+SERVER_PVT_KEY = '/server-key.pem'
 SERVER_PUBLIC_KEY = '/server-key-public.pem'
 
 

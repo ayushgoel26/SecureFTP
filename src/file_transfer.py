@@ -10,7 +10,6 @@ def hash_xor(data, key, previous_data):
 
 class FileTransfer:
     def __init__(self, directory_folder):
-        jf = None
         self.path = os.path.dirname(os.path.dirname(__file__)) + directory_folder
         self.chunk_size = 32
 

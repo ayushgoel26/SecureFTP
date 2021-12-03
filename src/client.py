@@ -16,7 +16,7 @@ class Client:
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection.connect((host, port))  # connect to server
         # Used to associate the socket with a specific network interface. Arguments passed to bind
-        self.file_transfer = FileTransfer("/root")
+        self.file_transfer = FileTransfer(CLIENT_FOLDER + ROOT_FOLDER)
         self.key_generator = KeyGeneration()
         self.key_generator.session_key_generation()  # generating session key and other keys
 

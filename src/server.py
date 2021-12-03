@@ -4,7 +4,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.key_generation import KeyGeneration
 from src.file_transfer import FileTransfer
-from src.config import HOST, PORT, SECRET_FOLDER
+from src.config import HOST, PORT, SECRET_FOLDER, SERVER_FOLDER, SERVER_PVT_KEY, ROOT_FOLDER
 
 
 class Server:
@@ -14,7 +14,7 @@ class Server:
         # Socket type.AF_INET -> Internet address family for IPv4
         # SOCK_STREAM is the socket type for TCP
         self.key_generation = KeyGeneration()
-        self.file_transfer = FileTransfer('/server')
+        self.file_transfer = FileTransfer(SERVER_FOLDER + ROOT_FOLDER)
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Used to associate the socket with a specific network interface. Arguments passed to bind
         self.connection.bind((host, port))
@@ -24,8 +24,8 @@ class Server:
 
     def authenticate(self, conn):
         authentication_payload_encrypted = conn.recv(4096)
-        private_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + '/' + CONFIDENTIAL_FILES_FOLDER +
-                                          'server-key.pem', 'r').read())
+        private_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + SERVER_FOLDER + SECRET_FOLDER +
+                                          SERVER_PVT_KEY, 'r').read())
         # pick servers private key
         cipher = PKCS1_OAEP.new(key=private_key)
         authentication_payload = cipher.decrypt(authentication_payload_encrypted)

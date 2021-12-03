@@ -38,8 +38,9 @@ try:
             ascii_banner = pyfiglet.figlet_format("C L I E N T")
             print(ascii_banner)
             print(WELCOME_TEXT)
+            client = Client(HOST, PORT)
+            client.authenticate()
             while True:
-                client = Client(HOST, PORT)
                 command = input('>> ')
                 command_split = command.split(" ")
                 if command_split[0] == "help":
