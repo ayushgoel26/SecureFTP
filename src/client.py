@@ -2,12 +2,13 @@ import socket
 import random
 import os
 from termcolor import colored
+import subprocess
 from src.key_generation import KeyGenerator
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from src.handler import FileHandler
 from src.config import SECRET_FOLDER, CLIENT_FOLDER, ROOT_FOLDER, SERVER_PUBLIC_KEY, \
-    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, ACK, INCORRECT_FILE
+    FAILED_INTEGRITY_CHECK, SUCCESS_INTEGRITY_CHECK, ACK, INCORRECT_FILE, CA_FOLDER, SERVER_FOLDER
 
 
 class Client:
@@ -29,8 +30,15 @@ class Client:
         """
         User to authenticate the server
         """
-        # check if the server is authentic
-        # https://www.peterspython.com/en/blog/using-python-s-pyopenssl-to-verify-ssl-certificates-downloaded-from-a-host
+        verify = subprocess.check_output(['openssl', 'verify', '-CAfile', os.path.dirname(os.path.dirname(__file__)) +
+                                          CA_FOLDER + '/ca.pem', os.path.dirname(os.path.dirname(__file__)) +
+                                          SERVER_FOLDER + SECRET_FOLDER + '/server-cert.pem'])
+        if verify == os.path.dirname(os.path.dirname(__file__)).encode('utf-8') + SERVER_FOLDER.encode('utf-8') + \
+                SECRET_FOLDER.encode('utf-8') + b"/server-cert.pem: OK\n":
+            print("Server Cert Verified")
+        else:
+            print("Error verifying server's certificate with certificate authority")
+            exit(1)
         # picking servers public key to validate the server
         server_public_key = RSA.import_key(open(os.path.dirname(os.path.dirname(__file__)) + CLIENT_FOLDER +
                                                 SECRET_FOLDER + SERVER_PUBLIC_KEY, 'r').read())
