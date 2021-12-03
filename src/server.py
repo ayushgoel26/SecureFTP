@@ -66,16 +66,17 @@ class Server:
                                                            self.key_generation.integrity_verification_key,
                                                            self.key_generation.file_encryption_key,
                                                            self.key_generation.initialization_value)
-        print("File has been uploaded")
-        conn.send(ACK)   # send an acknowledge for receiving the file
-        integrity_value_received = conn.recv(4096)  # receive the integrity value from the client after he receives file
-        # check if integrity values are same and send an acknowledgement
-        if integrity_value == integrity_value_received:
-            print("Integrity verification successful")
-            conn.send(SUCCESS_INTEGRITY_CHECK)
-        else:
-            print("Integrity Verification failed")
-            conn.send(FAILED_INTEGRITY_CHECK)
+        if integrity_value:
+            print("File has been uploaded")
+            conn.send(ACK)   # send an acknowledge for receiving the file
+            integrity_value_received = conn.recv(4096)  # receive the integrity value from the client after he receives file
+            # check if integrity values are same and send an acknowledgement
+            if integrity_value == integrity_value_received:
+                print("Integrity verification successful")
+                conn.send(SUCCESS_INTEGRITY_CHECK)
+            else:
+                print("Integrity Verification failed")
+                conn.send(FAILED_INTEGRITY_CHECK)
 
     def get(self, conn, filename):
         """
@@ -89,8 +90,11 @@ class Server:
                                                          self.key_generation.integrity_verification_key,
                                                          self.key_generation.file_encryption_key,
                                                          self.key_generation.initialization_value)
-        confirmation = conn.recv(4096).decode('utf-8')  # receive the confirmation from the client
-        if confirmation == ACK.decode("utf-8"):
-            conn.send(integrity_value)  # send client the integrity value
-            confirmation = conn.recv(4096).decode('utf-8')  # receive acknowledgement about the integrity of the file
-            print(confirmation)
+        if integrity_value:
+            confirmation = conn.recv(4096).decode('utf-8')  # receive the confirmation from the client
+            if confirmation == ACK.decode("utf-8"):
+                conn.send(integrity_value)  # send client the integrity value
+                confirmation = conn.recv(4096).decode('utf-8')  # receive acknowledgement about the integrity of the file
+                print(confirmation)
+        else:
+            conn.send(b'File does not exist')

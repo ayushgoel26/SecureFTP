@@ -91,14 +91,17 @@ class Client:
                                                              self.key_generator.integrity_verification_key,
                                                              self.key_generator.file_encryption_key,
                                                              self.key_generator.initialization_value)
-            # receive a confirmation from the server on receiving the file
-            confirmation = self.connection.recv(4096).decode('utf-8')
-            # send the integrity value to the server to check if the file was corrupted or not
-            if confirmation == ACK.decode("utf-8"):
-                self.connection.send(integrity_value)
-                # receive conformation about the file
+            if integrity_value:
+                # receive a confirmation from the server on receiving the file
                 confirmation = self.connection.recv(4096).decode('utf-8')
-                print(confirmation)
+                # send the integrity value to the server to check if the file was corrupted or not
+                if confirmation == ACK.decode("utf-8"):
+                    self.connection.send(integrity_value)
+                    # receive conformation about the file
+                    confirmation = self.connection.recv(4096).decode('utf-8')
+                    print(confirmation)
+            else:
+                self.connection.send(b'File does not exist')
 
     def get(self, command):
         """
@@ -111,13 +114,16 @@ class Client:
                                                            self.key_generator.integrity_verification_key,
                                                            self.key_generator.file_encryption_key,
                                                            self.key_generator.initialization_value)
-        print(colored('File has been downloaded', 'green'))
-        self.connection.send(ACK)  # send an acknowledgement after receiving the file
-        print('Doing Integrity Check')
-        integrity_value_received = self.connection.recv(4096)  # receive the integrity value calculated by the server
-        if integrity_value == integrity_value_received:  # compare the integrity values and send acknowledgement message
-            print(colored("Integrity verification successful", 'green'))
-            self.connection.send(SUCCESS_INTEGRITY_CHECK)
-        else:
-            print(colored("Integrity Verification failed", 'red'))
-            self.connection.send(FAILED_INTEGRITY_CHECK)
+        if integrity_value:
+            print(colored('File has been downloaded', 'green'))
+            self.connection.send(ACK)  # send an acknowledgement after receiving the file
+            print('Doing Integrity Check')
+            # receive the integrity value calculated by the server
+            integrity_value_received = self.connection.recv(4096)
+            # compare the integrity values and send acknowledgement message
+            if integrity_value == integrity_value_received:
+                print(colored("Integrity verification successful", 'green'))
+                self.connection.send(SUCCESS_INTEGRITY_CHECK)
+            else:
+                print(colored("Integrity Verification failed", 'red'))
+                self.connection.send(FAILED_INTEGRITY_CHECK)
