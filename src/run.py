@@ -1,4 +1,5 @@
 import getopt
+import os
 import sys
 import pyfiglet
 from src.server import Server
@@ -15,9 +16,9 @@ try:
         if currentArgument in ("-h", "--help"):
             print(HELP_TEXT)
         elif currentArgument in ("-s", "--server"):
+            server = Server(HOST, PORT)
             ascii_banner = pyfiglet.figlet_format("S E R V E R")
             print(ascii_banner)
-            server = Server(HOST, PORT)
             conn, address = server.connection.accept()
             print('Connection received from client ', address)
             server.authenticate(conn)
@@ -28,20 +29,20 @@ try:
                 if command == "lsr":
                     server.list_contents(conn)
                 elif command == "put":
-                    server.put(conn, client_command[1])
+                    server.put(conn, "/" + client_command[1])
                 elif command == "get":
-                    server.get(conn, client_command[1])
+                    server.get(conn, "/" + client_command[1])
                 elif command == "exit":
                     print("Client is leaving connection")
                     break
         elif currentArgument in ("-c", "--client"):
+            client = Client(HOST, PORT)
             ascii_banner = pyfiglet.figlet_format("C L I E N T")
             print(ascii_banner)
             print(WELCOME_TEXT)
-            client = Client(HOST, PORT)
             client.authenticate()
             while True:
-                command = input('>> ')
+                command = input(os.getcwd() + ' >> ')
                 command_split = command.split(" ")
                 if command_split[0] == "help":
                     print(SecureFTP_HELP_TEXT)
@@ -50,9 +51,9 @@ try:
                 elif command_split[0] == "lsr":
                     client.list_remote_content(command)
                 elif command_split[0] == 'put':
-                    client.put(command, command_split[1])
+                    client.put(command)
                 elif command_split[0] == 'get':
-                    client.get(command, command_split[1])
+                    client.get(command)
                 elif command_split[0] == 'exit':
                     client.connection.sendall(b"exit")
                     print("Disconnecting")

@@ -1,5 +1,6 @@
 import os
 import hashlib
+from src.config import EOF
 
 
 def hash_xor(data, key, previous_data):
@@ -8,9 +9,9 @@ def hash_xor(data, key, previous_data):
     return output_stream
 
 
-class FileTransfer:
-    def __init__(self, directory_folder):
-        self.path = os.path.dirname(os.path.dirname(__file__)) + directory_folder
+class FileHandler:
+    def __init__(self, directory_name):
+        self.path = os.path.dirname(os.path.dirname(__file__)) + directory_name
         self.chunk_size = 32
 
     # List files in local directory
@@ -24,30 +25,30 @@ class FileTransfer:
         for file in l_files:
             file_path = os.path.join(self.path, file)
             if os.path.isfile(file_path):
-                print("\t" + file)
+                print("\t -- " + file)
         return l_files
 
     def upload_file(self, conn, file_name, integrity_key, encryption_key, initialization_value):
-        file_path = self.path + "/" + file_name
+        file_path = self.path + file_name
         integrity_hash = hashlib.sha256()
         integrity_hash.update(integrity_key)
         if os.path.isfile(file_path):
-            print("\t file exists")
+            print("File found successfully")
             with open(file_path, 'rb') as file:
                 chunk = '-'
                 previous_chunk = initialization_value
-                while chunk[-3:] != b'EOF':
+                while chunk[-3:] != EOF:
                     chunk = file.read(self.chunk_size)
                     integrity_hash.update(chunk)
                     if len(chunk) < self.chunk_size:
-                        chunk += b'EOF'
+                        chunk += EOF
                     encrypted_chunk = hash_xor(chunk, encryption_key, previous_chunk)
                     previous_chunk = encrypted_chunk
                     conn.send(encrypted_chunk)
         return integrity_hash.digest()
 
     def download_file(self, conn, file_name, integrity_key, encryption_key, initialization_value):
-        file_path = self.path + "/" + file_name
+        file_path = self.path + file_name
         integrity_hash = hashlib.sha256()
         integrity_hash.update(integrity_key)
         # add code to check if file already exists -> ask client if wants to rewrite or give file new name
@@ -58,7 +59,7 @@ class FileTransfer:
                 encrypted_file_chunk = conn.recv(self.chunk_size)
                 chunk = hash_xor(encrypted_file_chunk, encryption_key, previous_chunk)
                 previous_chunk = encrypted_file_chunk
-                if chunk[-3:] == b'EOF':
+                if chunk[-3:] == EOF:
                     chunk = chunk[:-3]
                     integrity_hash.update(chunk)
                     file.write(chunk)

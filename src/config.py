@@ -12,13 +12,17 @@ CA_FOLDER = '/ca'
 SERVER_PVT_KEY = '/server-key.pem'
 SERVER_PUBLIC_KEY = '/server-key-public.pem'
 
+# Messages
+SUCCESS_INTEGRITY_CHECK = b'The file passed integrity verification. The file was not corrupted'
+FAILED_INTEGRITY_CHECK = b'The file did not pass integrity verification. The file was corrupted'
+ACK = b"ACK"
+EOF = b"EOF"
 
 WELCOME_TEXT = """---------------------------------------------------
 TYPE  >> help  TO GET THE LIST OF ALLOWED COMMANDS 
 ---------------------------------------------------"""
 
-SecureFTP_HELP_TEXT = """
-    >> lsl                               : Lists the contents of the client's root folder
+SecureFTP_HELP_TEXT = """    >> lsl                               : Lists the contents of the client's root folder
     >> lsr                               : Lists the contents of the remote server's root folder
     >> put <file-name in client root>    : Uploads a file from Client to Server 
     >> get <file-name in remote's root>  : Downloads a file from Server to Client

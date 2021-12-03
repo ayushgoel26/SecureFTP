@@ -2,7 +2,7 @@ import hashlib
 import random
 
 
-class KeyGeneration:
+class KeyGenerator:
     def __init__(self):
         self.session_key = None
         self.file_encryption_key = None
