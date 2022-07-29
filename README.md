@@ -1,8 +1,4 @@
 # SecureFTP
-## Group Members
-
-    1. Ayush Goel (AXG190164)
-    2. Reva Gupta (RXG190061)
 
 ## Setup
 
